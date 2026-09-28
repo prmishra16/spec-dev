@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getTicket, updateTicket, transitionStatus } from '../api/ticketApi.js';
+import { nextValidStatuses } from '../constants/ticketStateMachine.js';
 import StatusBadge from './StatusBadge.jsx';
 import CommentSection from './CommentSection.jsx';
-
-const VALID_TRANSITIONS = {
-  OPEN: ['IN_PROGRESS', 'CANCELLED'],
-  IN_PROGRESS: ['RESOLVED', 'CANCELLED'],
-  RESOLVED: ['CLOSED'],
-  CLOSED: [],
-  CANCELLED: [],
-};
 
 const PRIORITY_OPTIONS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
@@ -103,7 +96,7 @@ export default function TicketDetail({ ticketId, onBack, onNavigateToTicket }) {
     return <div style={{ padding: '40px', textAlign: 'center', color: '#ef4444' }}>Ticket not found.</div>;
   }
 
-  const nextStatuses = VALID_TRANSITIONS[ticket.status] || [];
+  const nextStatuses = nextValidStatuses(ticket.status);
 
   return (
     <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>

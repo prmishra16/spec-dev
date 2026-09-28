@@ -125,6 +125,8 @@ public class TicketService {
 
         Comment saved = commentRepository.save(comment);
         log.info("Added comment id={} to ticket id={}", saved.getId(), ticketId);
+
+        ragIngestionService.ingest(ticket);
         return saved;
     }
 

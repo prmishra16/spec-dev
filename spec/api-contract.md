@@ -124,6 +124,30 @@ Query params: `search` (string, optional), `status` (enum string, optional)
 }
 ```
 
+Adding a comment re-ingests the ticket into the vector store (see [rag-ingestion.md](./rag-ingestion.md)) so the comment becomes part of the searchable knowledge base immediately.
+
+---
+
+### GET /api/tickets/{id}/comments — List comments
+
+**Response 200:**
+```json
+[
+  {
+    "id": 5,
+    "ticket_id": 1,
+    "author": "bob",
+    "body": "Reproduced on Safari 17.2. Will investigate.",
+    "created_at": "2024-01-15T10:05:00"
+  }
+]
+```
+
+**Response 404** (ticket not found):
+```json
+{ "error": "Ticket not found: 999" }
+```
+
 ---
 
 ## AI Assistant

@@ -1,6 +1,8 @@
 package com.support.tickets.service;
 
+import com.support.tickets.domain.Comment;
 import com.support.tickets.domain.Ticket;
+import com.support.tickets.repository.CommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -15,7 +17,9 @@ import java.util.Map;
 /**
  * Handles ingestion of tickets into the PGVector store for RAG retrieval.
  *
- * Strategy: one document per ticket (field-group chunking).
+ * Strategy: one document per ticket (field-group chunking), including all of the
+ * ticket's comments so the knowledge base captures resolution history, not just
+ * the original description.
  * Re-ingestion: delete existing document by ticketId metadata, then insert new.
  */
 @Slf4j
@@ -23,6 +27,7 @@ import java.util.Map;
 public class RagIngestionService {
 
     private final VectorStore vectorStore;
+    private final CommentRepository commentRepository;
 
     @Value("${rag.retrieval.top-k:5}")
     private int topK;
@@ -30,8 +35,9 @@ public class RagIngestionService {
     @Value("${rag.retrieval.similarity-threshold:0.7}")
     private double similarityThreshold;
 
-    public RagIngestionService(VectorStore vectorStore) {
+    public RagIngestionService(VectorStore vectorStore, CommentRepository commentRepository) {
         this.vectorStore = vectorStore;
+        this.commentRepository = commentRepository;
     }
 
     /**
@@ -65,7 +71,8 @@ public class RagIngestionService {
                 "category", ticket.getCategory() != null ? ticket.getCategory() : ""
         );
 
-        Document document = new Document(ticket.toDocumentText(), metadata);
+        List<Comment> comments = commentRepository.findByTicketIdOrderByCreatedAtAsc(ticket.getId());
+        Document document = new Document(ticket.toDocumentText(comments), metadata);
 
         try {
             vectorStore.add(List.of(document));

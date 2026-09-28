@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "tickets")
@@ -51,13 +52,27 @@ public class Ticket {
     /**
      * Produces a human-readable text representation of this ticket for RAG ingestion.
      * All key fields are included so semantic search can match on any of them.
+     *
+     * @param comments the ticket's comments in chronological order, used as the
+     *                 resolution-notes/history portion of the document since there is
+     *                 no separate resolution-notes field
      */
-    public String toDocumentText() {
-        return "Title: " + title + "\n" +
-               "Description: " + description + "\n" +
-               "Status: " + (status != null ? status.name() : "OPEN") + "\n" +
-               "Priority: " + (priority != null ? priority.name() : "MEDIUM") + "\n" +
-               "Assignee: " + (assignee != null ? assignee : "Unassigned") + "\n" +
-               "Category: " + (category != null ? category : "General");
+    public String toDocumentText(List<Comment> comments) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Title: ").append(title).append("\n");
+        sb.append("Description: ").append(description).append("\n");
+        sb.append("Status: ").append(status != null ? status.name() : "OPEN").append("\n");
+        sb.append("Priority: ").append(priority != null ? priority.name() : "MEDIUM").append("\n");
+        sb.append("Assignee: ").append(assignee != null ? assignee : "Unassigned").append("\n");
+        sb.append("Category: ").append(category != null ? category : "General");
+
+        if (comments != null && !comments.isEmpty()) {
+            sb.append("\nComments:");
+            for (Comment comment : comments) {
+                sb.append("\n- ").append(comment.getAuthor()).append(": ").append(comment.getBody());
+            }
+        }
+
+        return sb.toString();
     }
 }
