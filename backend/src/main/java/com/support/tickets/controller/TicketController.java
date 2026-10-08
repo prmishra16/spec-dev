@@ -74,4 +74,5 @@ public class TicketController {
         List<Comment> comments = ticketService.getComments(id);
         return ResponseEntity.ok(comments);
     }
+
 }
